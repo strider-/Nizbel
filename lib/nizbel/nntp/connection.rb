@@ -25,11 +25,11 @@ module Nizbel
       end
 
       def peek
-        @peek ||= @socket.gets
+        @peek ||= @socket.gets.chomp
       end
 
       def gets
-        line = @peek || @socket.gets
+        line = @peek || @socket.gets.chomp
         @peek = nil
         line
       end

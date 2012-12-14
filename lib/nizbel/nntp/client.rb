@@ -6,11 +6,12 @@ module Nizbel
   module Nntp
 
     class Client
-      attr_reader :connected, :authenticated, :current_group
+      attr_reader :connected, :authenticated, :current_group, :overview_fields
 
       def initialize
         @conn = nil
         @connected = @authenticated = false
+        @overview_fields = [:article_id]
       end
 
       def connect(hostname, port, ssl = false)
@@ -21,11 +22,13 @@ module Nizbel
       def authenticate(user, pass)
         send_and_verify "AUTHINFO USER #{user}"
         send_and_verify "AUTHINFO PASS #{pass}"
-        @authenticated = ReplyCodes.is_good?(set_mode('READER')[:code])
+        set_mode 'READER'
+        populate_overview_fields
+        @authenticated = true
       end
 
       def close
-        return nil unless connected
+        return nil unless @connected
         result = @conn.puts('QUIT')
         @conn.close
         @connected = @authenticated = false
@@ -39,15 +42,23 @@ module Nizbel
         yenc = Nizbel::Nntp::Decoders::YencDecoder.new(@conn)
         data = yenc.decode
         raise Exception, 'Invalid CRC32' unless yenc.valid_crc32
+
         decompress(data).split("\r\n").map do |r|
           values = r.split("\t")
-          Hash[(0..values.count-1).zip(values)]
+          Hash[(0..values.count-1).map{ |i| @overview_fields[i] }.zip(values)]
+        end.each do |o|
+          o[:article_id] = o[:article_id].to_i
+          o[:date] = Time.parse(o[:date]).utc
+          o[:bytes] = o[:bytes].to_i
+          o[:lines] = o[:lines].to_i
         end
       end
 
       def set_group(group_name)
-        send_and_verify("GROUP #{group_name}")
+        result = send_and_verify("GROUP #{group_name}")
         @current_group = group_name
+        info = result[:message].split
+        { :article_count => info[0].to_i, :first => info[1].to_i, :last => info[2].to_i, :group => info[3] }
       end
 
       def date
@@ -61,6 +72,13 @@ module Nizbel
       end
 
       private
+
+      def populate_overview_fields
+        send_and_verify "LIST OVERVIEW.FMT"
+        while (line = @conn.gets) != '.'
+          @overview_fields << line.split(':').find(&:present?).gsub('-', '_').downcase.to_sym
+        end
+      end
 
       def decompress(data)
         zlib = Zlib::Inflate.new(-Zlib::MAX_WBITS)

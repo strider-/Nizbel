@@ -61,7 +61,7 @@ module Nizbel
 
         def parse_yenc(line)
           rx = /([A-z0-9]+)=(.*?)(?:\s|$)/
-          Hash[line.scan(rx)]
+          Hash[line.scan(rx).map{|k,v|[k.to_sym,v]}]
         end
       end
 
