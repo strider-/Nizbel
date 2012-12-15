@@ -37,7 +37,6 @@ module Nizbel
       end
 
       def x_overview(range)
-        # alt.binaries.erotica | 1906725665-1906725667
         require_group
         send_and_verify "XZVER #{range}"
         result = decode_connection_data
