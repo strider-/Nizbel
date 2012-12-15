@@ -1,3 +1,4 @@
+require 'stringio'
 require 'zlib'
 
 module Nizbel
@@ -17,7 +18,9 @@ module Nizbel
         def decode
           return nil if @complete
 
-          data = ''.force_encoding('ASCII-8BIT')
+          #data = ''.force_encoding('ASCII-8BIT')
+          data = StringIO.new
+          data.set_encoding('ASCII-8BIT')
           while !@conn.peek.include?('=yend')
             escape = false
             @conn.gets.each_byte do |b|
@@ -31,7 +34,7 @@ module Nizbel
                   b = b - 64
                 end
                 decoded = b.between?(0, 41) ? (b + 214) : (b - 42)
-                data << decoded
+                data.putc(decoded)
               end
             end
           end
@@ -39,10 +42,10 @@ module Nizbel
           footer = parse_yenc(@conn.gets)
           crc_key = footer.keys.detect(/crc/).first
 
-          @valid_crc32 = footer[crc_key] == Zlib.crc32(data, 0).to_s(16)
+          @valid_crc32 = footer[crc_key] == Zlib.crc32(data.string, 0).to_s(16)
           @conn.gets # "."
           @complete = true
-          data
+          data.string
         end
 
         private
