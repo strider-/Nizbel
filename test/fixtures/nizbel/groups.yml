@@ -1,0 +1,25 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  backfill_target: 1
+  first_record: 
+  first_record_postdate: 2012-12-15 00:46:03
+  last_record: 
+  last_record_postdate: 2012-12-15 00:46:03
+  last_updated: 2012-12-15 00:46:03
+  min_files_to_form_release: 1
+  active: false
+  description: MyString
+
+two:
+  name: MyString
+  backfill_target: 1
+  first_record: 
+  first_record_postdate: 2012-12-15 00:46:03
+  last_record: 
+  last_record_postdate: 2012-12-15 00:46:03
+  last_updated: 2012-12-15 00:46:03
+  min_files_to_form_release: 1
+  active: false
+  description: MyString

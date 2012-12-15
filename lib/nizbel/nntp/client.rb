@@ -40,9 +40,9 @@ module Nizbel
         # alt.binaries.erotica | 1906725665-1906725667
         require_group
         send_and_verify "XZVER #{range}"
-        data = decode_connection_data
+        result = decode_connection_data
 
-        decompress(data).split("\r\n").map do |r|
+        decompress(result[:data]).split("\r\n").map do |r|
           values = r.split("\t")
           Hash[(0..values.count-1).map{ |i| @overview_fields[i] }.zip(values)]
         end.each do |o|
@@ -94,10 +94,9 @@ module Nizbel
       end
 
       def decode_connection_data
-        yenc = Nizbel::Nntp::Decoders::YencDecoder.new(@conn)
-        data = yenc.decode
-        raise NntpError, 'Invalid CRC32' unless yenc.valid_crc32
-        data
+        decoded_result = Nizbel::Nntp::Decoders::YencDecoder.decode(@conn)
+        raise NntpError, 'Invalid CRC32' unless decoded_result[:valid_crc32]
+        decoded_result
       end
 
       def send_and_verify(command)

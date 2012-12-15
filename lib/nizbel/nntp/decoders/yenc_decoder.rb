@@ -1,4 +1,3 @@
-require 'stringio'
 require 'zlib'
 
 module Nizbel
@@ -6,60 +5,47 @@ module Nizbel
     module Decoders
 
       class YencDecoder
-        attr_reader :headers, :valid_crc32, :complete
-
-        def initialize(conn)
+        def self.decode(conn)
           raise ArgumentException 'Not a valid connection' unless conn.is_a?(Nizbel::Nntp::Connection)
-          @conn = conn
-          read_headers
-          @complete = false
-        end
+          raise Nizbel::Nntp::NntpError 'Missing valid yEnc header' unless conn.peek.include?('=ybegin')
 
-        def decode
-          return nil if @complete
-
-          #data = ''.force_encoding('ASCII-8BIT')
-          data = StringIO.new
-          data.set_encoding('ASCII-8BIT')
-          while !@conn.peek.include?('=yend')
+          headers = read_headers(conn)
+          data = ''.force_encoding('ASCII-8BIT')
+          while !conn.peek.include?('=yend')
             escape = false
-            @conn.gets.each_byte do |b|
-              next if b == 10 || b == 13
-              if b == 61 && !escape
+            conn.gets.each_byte do |b|
+              next if b == 0x0A || b == 0x0D
+              if b == 0x3D && !escape
                 escape = true
                 next
               else
                 if escape
                   escape = false
-                  b = b - 64
+                  b = b - 0x40
                 end
-                decoded = b.between?(0, 41) ? (b + 214) : (b - 42)
-                data.putc(decoded)
+                decoded = b.between?(0x00, 0x29) ? (b + 0xD6) : (b - 0x2A)
+                data << decoded
               end
             end
           end
 
-          footer = parse_yenc(@conn.gets)
+          footer = parse_yenc(conn.gets)
           crc_key = footer.keys.detect(/crc/).first
+          actual_crc32 = "%.8x" % Zlib.crc32(data, 0)
+          conn.gets # "."
 
-          @valid_crc32 = footer[crc_key] == Zlib.crc32(data.string, 0).to_s(16)
-          @conn.gets # "."
-          @complete = true
-          data.string
+          { :headers => headers, :data => data, :valid_crc32 => footer[crc_key].casecmp(actual_crc32) == 0 }
         end
 
         private
 
-        def read_headers
-          if @conn.peek.include?('=ybegin')
-            @headers = parse_yenc(@conn.gets)
-          end
-          if @conn.peek.include?('=ypart')
-            @headers.merge(parse_yenc(@conn.gets))
-          end
+        def self.read_headers(conn)
+          headers = parse_yenc(conn.gets)
+          headers.merge(parse_yenc(conn.gets)) if conn.peek.include?('=ypart')
+          headers
         end
 
-        def parse_yenc(line)
+        def self.parse_yenc(line)
           rx = /([A-z0-9]+)=(.*?)(?:\s|$)/
           Hash[line.scan(rx).map{|k,v|[k.to_sym,v]}]
         end
