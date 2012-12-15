@@ -4,9 +4,10 @@ require 'nizbel/nntp/decoders/yenc_decoder'
 
 module Nizbel
   module Nntp
+    class NntpError < StandardError; end
 
     class Client
-      attr_reader :connected, :authenticated, :current_group, :overview_fields
+      attr_reader :connected, :authenticated, :group, :overview_fields
 
       def initialize
         @conn = nil
@@ -37,11 +38,9 @@ module Nizbel
 
       def x_overview(range)
         # alt.binaries.erotica | 1906725665-1906725667
-        raise Exception, 'You have to call set_group first.' unless @current_group.present?
+        require_group
         send_and_verify "XZVER #{range}"
-        yenc = Nizbel::Nntp::Decoders::YencDecoder.new(@conn)
-        data = yenc.decode
-        raise Exception, 'Invalid CRC32' unless yenc.valid_crc32
+        data = decode_connection_data
 
         decompress(data).split("\r\n").map do |r|
           values = r.split("\t")
@@ -56,7 +55,7 @@ module Nizbel
 
       def set_group(group_name)
         result = send_and_verify("GROUP #{group_name}")
-        @current_group = group_name
+        @group = group_name
         info = result[:message].split
         { :article_count => info[0].to_i, :first => info[1].to_i, :last => info[2].to_i, :group => info[3] }
       end
@@ -69,6 +68,12 @@ module Nizbel
       def article_exists?(article_id)
         result = @conn.puts("STAT <#{article_id}>")
         ReplyCodes.is_good?(result[:code])
+      end
+
+      def speed_test(&block)
+        start = Time.now
+        yield self
+        Time.now - start
       end
 
       private
@@ -88,14 +93,23 @@ module Nizbel
         buf
       end
 
-      def send_and_verify(command)
-        result = @conn.puts(command)
-        verify result
+      def decode_connection_data
+        yenc = Nizbel::Nntp::Decoders::YencDecoder.new(@conn)
+        data = yenc.decode
+        raise NntpError, 'Invalid CRC32' unless yenc.valid_crc32
+        data
       end
 
-      def verify(result)
-        raise Exception, result[:message] unless ReplyCodes.is_good?(result[:code])
+      def send_and_verify(command)
+        result = @conn.puts(command)
+        raise NntpError, result[:message] unless ReplyCodes.is_good?(result[:code])
         result
+      end
+
+      def require_group
+        unless @group.present?
+          raise NntpError, 'You have to call set_group with a newsgroup name before using this method.'
+        end
       end
 
       def set_mode(mode)

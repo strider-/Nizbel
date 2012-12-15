@@ -17,8 +17,7 @@ module Nizbel
         def decode
           return nil if @complete
 
-          reader, writer = IO.pipe
-          writer.set_encoding('ASCII-8BIT')
+          data = ''.force_encoding('ASCII-8BIT')
           while !@conn.peek.include?('=yend')
             escape = false
             @conn.gets.each_byte do |b|
@@ -32,19 +31,17 @@ module Nizbel
                   b = b - 64
                 end
                 decoded = b.between?(0, 41) ? (b + 214) : (b - 42)
-                writer.putc(decoded)
+                data << decoded
               end
             end
           end
-          writer.close
 
           footer = parse_yenc(@conn.gets)
           crc_key = footer.keys.detect(/crc/).first
-          data = reader.read
 
           @valid_crc32 = footer[crc_key] == Zlib.crc32(data, 0).to_s(16)
-          @complete = true
           @conn.gets # "."
+          @complete = true
           data
         end
 
