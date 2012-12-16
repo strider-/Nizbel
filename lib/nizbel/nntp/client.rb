@@ -58,6 +58,23 @@ module Nizbel
         end.each(&method(:convert_values))
       end
 
+      def article_range_for(target_date)
+        group_info = set_group(@group)
+        current = group_info[:last]
+        current_date = last_date = x_header('date', current).first[:date]
+        first_date = x_header('date', group_info[:first]).first[:date]
+
+        # calculate average number of articles posted to the group
+        # in a 12-hour period, use result as the 'step' interval
+        interval = (group_info[:article_count] / ((current_date - first_date) / 43200)).floor
+
+        while current_date >= target_date
+          current_date = x_header('date', (current -= interval)).first[:date]
+        end
+
+        { :first => current, :first_date => current_date, :last => group_info[:last], :last_date => last_date }
+      end
+
       def set_group(group_name)
         result = send_and_verify("GROUP #{group_name}")
         @group = group_name
