@@ -18,7 +18,7 @@
     'Clip', 'DVD', 'Pack', 'XviD', 'x264', 'Imageset'
   ],
   'Other' => [
-    'Misc'
+    'Misc', 'Comics', 'Anime'
   ]
 }.each do |category, sub_categories|
   parent = Nizbel::Category.create(:title => category)

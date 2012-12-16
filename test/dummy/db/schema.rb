@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121216044139) do
+ActiveRecord::Schema.define(:version => 20121216161036) do
 
   create_table "categories_groups", :force => true do |t|
     t.integer "group_id"
@@ -43,9 +43,12 @@ ActiveRecord::Schema.define(:version => 20121216044139) do
     t.boolean  "active",      :default => true, :null => false
     t.integer  "options",     :default => 0,    :null => false
     t.string   "description"
+    t.integer  "category_id"
     t.datetime "created_at",                    :null => false
     t.datetime "updated_at",                    :null => false
   end
+
+  add_index "nizbel_release_regexes", ["regex"], :name => "index_nizbel_release_regexes_on_regex", :unique => true
 
   create_table "nizbel_users", :force => true do |t|
     t.string   "username"

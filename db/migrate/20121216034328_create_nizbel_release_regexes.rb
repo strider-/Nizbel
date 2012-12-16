@@ -5,8 +5,11 @@ class CreateNizbelReleaseRegexes < ActiveRecord::Migration
       t.boolean :active, :null => false, :default => true
       t.integer :options, :null => false, :default => 0
       t.string :description
+      t.integer :category_id
 
       t.timestamps
     end
+
+    add_index :nizbel_release_regexes, :regex, :unique => true
   end
 end
