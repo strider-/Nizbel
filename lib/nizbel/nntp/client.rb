@@ -44,12 +44,18 @@ module Nizbel
         decompress(result[:data]).split("\r\n").map do |r|
           values = r.split("\t")
           Hash[(0..values.count-1).map{ |i| @overview_fields[i] }.zip(values)]
-        end.each do |o|
-          o[:article_id] = o[:article_id].to_i
-          o[:date] = Time.parse(o[:date]).utc
-          o[:bytes] = o[:bytes].to_i
-          o[:lines] = o[:lines].to_i
-        end
+        end.each(&method(:convert_values))
+      end
+
+      def x_header(header, range)
+        require_group
+        send_and_verify "XZHDR #{header} #{range}"
+        result = decode_connection_data
+
+        decompress(result[:data]).split("\r\n").map do |r|
+          values = r.split(' ', 2)
+          Hash[[:id, header.downcase.parameterize.to_sym].zip(values)]
+        end.each(&method(:convert_values))
       end
 
       def set_group(group_name)
@@ -69,18 +75,12 @@ module Nizbel
         ReplyCodes.is_good?(result[:code])
       end
 
-      def speed_test(&block)
-        start = Time.now
-        yield self
-        Time.now - start
-      end
-
       private
 
       def populate_overview_fields
         send_and_verify "LIST OVERVIEW.FMT"
         while (line = @conn.gets) != '.'
-          @overview_fields << line.split(':').find(&:present?).gsub('-', '_').downcase.to_sym
+          @overview_fields << line.split(':').find(&:present?).downcase.parameterize.to_sym
         end
       end
 
@@ -112,6 +112,15 @@ module Nizbel
 
       def set_mode(mode)
         @conn.puts "MODE #{mode}"
+      end
+
+      def convert_values(hash)
+        hash.tap do |h|
+          [:article_id, :bytes, :lines].each do |k,v|
+            h[k] = h[k].to_i if h.has_key?(k)
+          end
+          h[:date] = Time.parse(h[:date]).utc if h.has_key?(:date)
+        end
       end
     end
 

@@ -3,6 +3,8 @@ module Nizbel
     attr_accessible :active, :backfill_target, :description, :first_record, :first_record_postdate,
                     :last_record, :last_record_postdate, :last_updated, :min_files_to_form_release, :name
 
+    has_and_belongs_to_many :categories
+
     scope :active, where(:active => true)
 
     def reset!

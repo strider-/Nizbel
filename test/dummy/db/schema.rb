@@ -11,7 +11,19 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121215065357) do
+ActiveRecord::Schema.define(:version => 20121216031156) do
+
+  create_table "categories_groups", :force => true do |t|
+    t.integer "group_id"
+    t.integer "category_id"
+  end
+
+  create_table "nizbel_categories", :force => true do |t|
+    t.string  "title",                         :null => false
+    t.string  "description"
+    t.integer "parent_id"
+    t.boolean "active",      :default => true
+  end
 
   create_table "nizbel_groups", :force => true do |t|
     t.string   "name",                      :default => "",    :null => false
@@ -25,5 +37,19 @@ ActiveRecord::Schema.define(:version => 20121215065357) do
     t.boolean  "active",                    :default => false, :null => false
     t.string   "description",               :default => ""
   end
+
+  create_table "nizbel_users", :force => true do |t|
+    t.string   "username"
+    t.string   "email"
+    t.string   "password_digest"
+    t.integer  "role"
+    t.integer  "nzb_grabs",       :default => 0, :null => false
+    t.string   "token"
+    t.datetime "created_at",                     :null => false
+    t.datetime "updated_at",                     :null => false
+  end
+
+  add_index "nizbel_users", ["email"], :name => "index_nizbel_users_on_email", :unique => true
+  add_index "nizbel_users", ["username"], :name => "index_nizbel_users_on_username", :unique => true
 
 end

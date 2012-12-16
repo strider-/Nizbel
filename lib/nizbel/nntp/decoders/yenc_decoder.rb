@@ -7,7 +7,6 @@ module Nizbel
       class YencDecoder
         def self.decode(conn)
           raise ArgumentException 'Not a valid connection' unless conn.is_a?(Nizbel::Nntp::Connection)
-          raise Nizbel::Nntp::NntpError 'Missing valid yEnc header' unless conn.peek.include?('=ybegin')
 
           headers = read_headers(conn)
           data = ''.force_encoding('ASCII-8BIT')
@@ -40,6 +39,8 @@ module Nizbel
         private
 
         def self.read_headers(conn)
+          conn.chomp
+          raise Nizbel::Nntp::NntpError 'Missing valid yEnc header' unless conn.peek.include?('=ybegin')
           headers = parse_yenc(conn.gets)
           headers.merge(parse_yenc(conn.gets)) if conn.peek.include?('=ypart')
           headers

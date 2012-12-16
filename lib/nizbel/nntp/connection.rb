@@ -39,6 +39,13 @@ module Nizbel
         parse_reply(@socket.gets.chomp)
       end
 
+      # Consumes empty lines
+      def chomp
+        while self.peek.blank?
+          self.gets
+        end
+      end
+
       private
 
       def parse_reply(msg)
