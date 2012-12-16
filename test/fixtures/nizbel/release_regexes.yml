@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  regex: MyString
+  active: false
+
+two:
+  regex: MyString
+  active: false

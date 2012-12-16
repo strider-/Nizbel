@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121216031156) do
+ActiveRecord::Schema.define(:version => 20121216044139) do
 
   create_table "categories_groups", :force => true do |t|
     t.integer "group_id"
@@ -36,6 +36,15 @@ ActiveRecord::Schema.define(:version => 20121216031156) do
     t.integer  "min_files_to_form_release"
     t.boolean  "active",                    :default => false, :null => false
     t.string   "description",               :default => ""
+  end
+
+  create_table "nizbel_release_regexes", :force => true do |t|
+    t.string   "regex",                         :null => false
+    t.boolean  "active",      :default => true, :null => false
+    t.integer  "options",     :default => 0,    :null => false
+    t.string   "description"
+    t.datetime "created_at",                    :null => false
+    t.datetime "updated_at",                    :null => false
   end
 
   create_table "nizbel_users", :force => true do |t|
