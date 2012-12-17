@@ -11,12 +11,29 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121216161036) do
+ActiveRecord::Schema.define(:version => 20121216232040) do
 
   create_table "categories_groups", :force => true do |t|
     t.integer "group_id"
     t.integer "category_id"
   end
+
+  create_table "nizbel_binaries", :force => true do |t|
+    t.string   "name"
+    t.string   "poster"
+    t.datetime "date"
+    t.integer  "total_parts"
+    t.integer  "group_id"
+    t.integer  "request_id"
+    t.string   "binary_hash"
+    t.integer  "release_id"
+    t.datetime "created_at",  :null => false
+    t.datetime "updated_at",  :null => false
+  end
+
+  add_index "nizbel_binaries", ["binary_hash"], :name => "index_nizbel_binaries_on_binary_hash", :unique => true
+  add_index "nizbel_binaries", ["date"], :name => "index_nizbel_binaries_on_date"
+  add_index "nizbel_binaries", ["poster"], :name => "index_nizbel_binaries_on_poster"
 
   create_table "nizbel_categories", :force => true do |t|
     t.string  "title",                         :null => false
@@ -38,8 +55,18 @@ ActiveRecord::Schema.define(:version => 20121216161036) do
     t.string   "description",               :default => ""
   end
 
+  create_table "nizbel_parts", :force => true do |t|
+    t.integer  "binary_id"
+    t.string   "message_id"
+    t.integer  "article_id"
+    t.integer  "part_number"
+    t.integer  "size"
+    t.datetime "created_at",  :null => false
+    t.datetime "updated_at",  :null => false
+  end
+
   create_table "nizbel_release_regexes", :force => true do |t|
-    t.string   "regex",                         :null => false
+    t.text     "regex",                         :null => false
     t.boolean  "active",      :default => true, :null => false
     t.integer  "options",     :default => 0,    :null => false
     t.string   "description"

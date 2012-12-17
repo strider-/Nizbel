@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  binary_id: 1
+  message_id: MyString
+  article_id: 1
+  part_number: 1
+  size: 1
+
+two:
+  binary_id: 1
+  message_id: MyString
+  article_id: 1
+  part_number: 1
+  size: 1

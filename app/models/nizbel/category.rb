@@ -18,7 +18,7 @@ module Nizbel
       ReleaseRegex.by_category(self).each do |r|
         categories << [r.category, r.regex.length] if r.to_regexp =~ release_name
       end
-      categories.sort { |a,b| a[1] <=> b[1] }.first[0]
+      categories.sort { |a,b| a[1] <=> b[1] }.first.try(:[], 0)
     end
 
   end

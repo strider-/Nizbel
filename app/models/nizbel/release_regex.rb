@@ -20,7 +20,7 @@ module Nizbel
       clean_regex = php_regex_str.gsub(*trailing_options).gsub(*leading_slash).gsub(*php_named_groups)
 
       ReleaseRegex.where(:regex => clean_regex).first_or_create.tap do |r|
-        r.options = options
+        r.options = (options || 0)
       end
     end
 

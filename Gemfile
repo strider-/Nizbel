@@ -6,6 +6,8 @@ source "http://rubygems.org"
 gemspec
 
 # jquery-rails is used by the dummy application
+
+gem 'pg'
 gem "jquery-rails"
 gem 'haml-rails'
 gem 'sass-rails', '~> 3.2'

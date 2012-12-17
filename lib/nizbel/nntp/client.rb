@@ -54,7 +54,7 @@ module Nizbel
 
         decompress(result[:data]).split("\r\n").map do |r|
           values = r.split(' ', 2)
-          Hash[[:id, header.downcase.parameterize.to_sym].zip(values)]
+          Hash[[:id, header.parameterize.underscore.to_sym].zip(values)]
         end.each(&method(:convert_values))
       end
 
@@ -97,7 +97,7 @@ module Nizbel
       def populate_overview_fields
         send_and_verify "LIST OVERVIEW.FMT"
         while (line = @conn.gets) != '.'
-          @overview_fields << line.split(':').find(&:present?).downcase.parameterize.to_sym
+          @overview_fields << line.split(':').find(&:present?).parameterize.underscore.to_sym
         end
       end
 
@@ -111,7 +111,7 @@ module Nizbel
 
       def decode_connection_data
         decoded_result = Nizbel::Nntp::Decoders::YencDecoder.decode(@conn)
-        raise NntpError, 'Invalid CRC32' unless decoded_result[:valid_crc32]
+        # raise NntpError, 'Invalid CRC32' unless decoded_result[:valid_crc32]
         decoded_result
       end
 
